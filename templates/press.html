@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+	<div class="row border scroll press">
+
+	{% for article in articles %}
+
+		<div class="row border press-article">
+			<div class="col-md-8 col-sm-12 col-xs-12 border">
+				<a href="{{ article.link }}" target="_blank"><img class="img-responsive" src="{{ url_for('static', filename='images/{}'.format(article.image)) }}"></a>
+
+			</div>
+			<div class="col-md-4 col-sm-12 col-xs-12 float-bottom border press-detail">
+					<span><b><a href="{{ article.link }}" target="_blank">{{ article.title }}</a></b></span>
+	     			<br>
+	     			<span><b>{{ article.published_str }}</b></span>
+	     			<br>
+	     			<span>{{ article.tag_line }}</span>
+			</div>
+		</div>
+
+	{% endfor %}
+	
+	</div>
+
+{% endblock %}

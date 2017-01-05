@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>22:22</title>
+		<link rel="shortcut icon" href="/static/images/favicon.png" />
+		<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" media="(min-width: 992px)" href="/static/css/styles.css">
+		<link rel="stylesheet" type="text/css" media="(max-width: 991px)" href="/static/css/styles-mob.css">
+		<link href='https://fonts.googleapis.com/css?family=Lato:300,700' rel='stylesheet' type='text/css'>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+
+		{% block customJs %}
+
+		{% endblock %}
+
+		{% if environment == "config.ProductionConfig" %}
+
+			<script>
+			  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+			  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+			  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+			  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+			  ga('create', 'UA-76812744-1', 'auto');
+			  ga('send', 'pageview');
+			</script>
+		{% endif %}
+	</head>
+
+	<body class="container-fluid">
+<!-- begin header -->
+		<div class="row border">
+			<div class="col-md-12 hline">
+				<div class="col-md-4 col-md-offset-4 border">
+					<a href="/"><img class="img-responsive logo" src="/static/images/logo.png"></a>
+				</div>
+			</div>
+		</div>
+
+		<div class="row border">
+			<div class="col-md-6 nav border">
+				<nav class="nav border">
+					<ul>
+<!-- 						<li><a href="#">COLLECTION</a>
+							<ul>
+								<li><a href="#">COLLECTION NO.1</a></li>
+							</ul>
+						</li> -->
+						<li class="border"><a href="/shop">SHOP</a>
+						</li>
+						<li class="border"><a href="/press">PRESS</a>
+						</li>
+						
+					</ul>
+				</nav>
+			</div>
+<!-- 			<div class="col-md-6">
+				<nav class="basket">
+					<ul>
+						<li><a href="#">SHOPPING BAG</a>
+						</li>
+					</ul>
+				</nav>
+			</div> -->
+		</div>
+<!-- end header -->
+
+		{% block content %}
+		
+		{% endblock %}
+
+<!-- begin footer -->
+		<div class="row footer border">
+			<div class="col-md-8 col-md-offset-2 col-sm-12 col-xs-12 border">
+				<nav>
+					<ul class="border">
+						<li class="border"><a href="/terms-and-conditions">TERMS & CONDITIONS</a></li>
+						<li class="border"><a href="/about">ABOUT</a></li>
+						<li class="border"><a href="/working-with-us">WORKING WITH US</a></li>
+						<li class="border"><a href="/contact">CONTACT</a></li>
+					</ul>
+				</nav>
+			</div>
+			<div class="col-md-2 col-xs-12 social border">
+				<a target="_blank" href="https://www.instagram.com/twentytwo_twentytwo/"><img class="img-responsive" src="/static/images/icon_instagram.png"></a>
+			</div>
+		</div>
+<!-- end footer -->
+	{% block modal %}
+
+	{% endblock %}
+
+	</body>
+</html>

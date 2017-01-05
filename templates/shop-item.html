@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block customJs %}
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	<script src="{{ url_for('static', filename='js/mail.js') }}"></script>
+	{% if item.name == "emin" %}
+	<script src="{{ url_for('static', filename='js/select.js') }}"></script>
+	{% endif %}
+{% endblock %}
+
+{% block content %}
+
+		<div class="row border top-margin bottom-margin">
+			<div class="col-md-6 col-xs-12 shop-item border">
+				<a href="#" id="pop">
+					<img id="{{ item.name }}" class="img-responsive" data-toggle="modal" data-target="#itemModal" src="{{ url_for('static', filename='images/{}'.format(item.thumbnail)) }}">
+				</a>
+			</div>
+
+			<div class="col-md-6 col-xs-12 border shop-item">
+				<form id="item-form" action="mailto:jessica@twentytwo-twentytwo.co.uk" method="post" enctype="text/plain" onsubmit="onSubmit()">
+					<div class="col-md-12 col-xs-12">
+						<span id="item-name"><b>{{ item.name.upper() }}</b> {{ item.category.upper() }}</span>
+						<br>
+						<br>
+						<span><b>{{ "£{}".format((item.price | int)) }}</b></span>
+						<br>
+						<br>
+						<br>
+						<span>{{ item.dna.upper() }}</span>
+					</div>
+					<br>
+					<br>
+					<br>
+					<br>
+					<br>
+					<br>
+					<br>
+					<br>
+					<div class="col-md-5 col-xs-12">
+						<select id="item-size">
+							<option value="" disabled selected>SELECT SIZE</option>
+							{% for size in item.sizes %}
+							<option name="body" value="{{ size }}">{{ size }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="col-md-6 col-xs-12">
+
+						{% if item.name == "emin" %}
+
+						<select id="item-colour" onchange="onChange()">
+
+						{% else %}
+
+						<select id="item-colour">
+
+						{% endif %}
+
+							<option value="" disabled selected>SELECT COLOUR</option>
+
+							{% for colour in item.colours %}
+							<option name="body" value="{{ colour }}">{{ colour }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<br>
+					<br>
+					<br>
+					<div class="col-md-10">
+						<span>{{ item.description.upper() }}</span>
+					</div>
+					<br>
+					<br>
+					<br>
+					<br>
+					<div class="col-md-10">
+						<span>{{ item.care.upper() | safe }}</span>
+					</div>
+					<br>
+					<br>
+					<br>
+					<br>
+					<br>
+					<div class="col-md-10">
+						<input type="submit" value="MAKE ENQUIRY" />
+					</div>
+				</form>
+
+			</div>
+		</div>
+
+{% endblock %}
+
+{% block modal %}
+
+
+<!-- Modal -->
+<div class="modal" id="itemModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+  	<div class="vertical-alignment-helper">
+	  	<div class="modal-dialog modal-lg vertical-align-center">
+		    <div class="modal-content">
+		    	<div id="carousel-example-generic" class="carousel slide" data-ride="carousel" data-interval="">
+
+		  			<!-- Wrapper for slides -->
+					<div class="carousel-inner">
+					    {% for image in item.images %}
+							{% if image == item.thumbnail %}
+								<div class="item active">
+									<img class="img-responsive" src="{{ url_for('static', filename='images/{}'.format(image)) }}" alt="...">
+								</div>
+							{% else %}
+								<div class="item">
+									<img class="img-responsive" src="{{ url_for('static', filename='images/{}'.format(image)) }}" alt="...">
+								</div>
+							{% endif %}
+						{% endfor %}
+					</div>
+
+				  <!-- Controls -->
+					<a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+						<span class="glyphicon glyphicon-chevron-left"></span>
+					</a>
+					<a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+						<span class="glyphicon glyphicon-chevron-right"></span>
+					</a>
+				</div>
+			</div>
+		</div>
+    </div>
+</div>
+
+{% endblock %}

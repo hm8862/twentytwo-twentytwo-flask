@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+	<div class="col-md-11 scroll border">
+
+	{% for item_pair in items %}
+	
+		
+			<div class="row shop top-margin border">
+				<div class="col-md-12">
+
+					{% for item in item_pair %}
+
+						<div class="col-md-6 border">
+							<div class="col-md-12">
+								<a href="shop/item/{{ item.id }}"><img class="img-responsive" src="{{ url_for('static', filename='images/{}'.format(item.image)) }}"></a>
+							</div>
+							<div class="col-md-12">
+								<div class="col-md-9 col-xs-9 border">
+									<span><b>{{ item.name.upper() }}</b> {{ item.category.upper() }}</span>
+								</div>
+								<div class="col-md-3 col-xs-3 price border">
+									<span>{{ "£{}".format((item.price | int)) }}</span>
+								</div>
+							</div>
+						</div>
+
+					{% endfor %}
+
+				</div>
+			</div>
+
+	{% endfor %}
+
+	</div>
+	<div class="col-md-11 contributor">
+		<div class="row">
+			<div class="col-md-12 border">
+				<div class="col-md-6">
+					<div class="col-md-12">
+				    	<span>PHOTOGRAPHY: MALLORY MELANDER</span>
+				    	<br>
+				    	<span>MANNEQUIN: MARION BEAUDIQUEZ</span>
+				    </div>
+		    	</div>
+		    </div>
+		</div>
+	</div>
+
+{% endblock %}
