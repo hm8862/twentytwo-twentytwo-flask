@@ -150,3 +150,43 @@ class PressPhoto(db.Model):
 
     def __repr__(self):
         return '<id {}>'.format(self.id)
+
+##########################################################################################
+
+class Purchase(db.Model):
+    __tablename__ = 'purchase'
+
+    id = db.Column(db.String, primary_key=True)
+    email = db.Column(db.String)
+    billing_first_name = db.Column(db.String)
+    billing_last_name = db.Column(db.String)
+    billing_street = db.Column(db.String)
+    billing_city = db.Column(db.String)
+    billing_zip = db.Column(db.String)
+    billing_country = db.Column(db.String)
+    delivery_first_name = db.Column(db.String)
+    delivery_last_name = db.Column(db.String)
+    delivery_street = db.Column(db.String)
+    delivery_city = db.Column(db.String)
+    delivery_zip = db.Column(db.String)
+    delivery_country = db.Column(db.String)
+
+    def __init__(self, id, email, billing_first_name, billing_last_name, billing_street, billing_city, billing_zip, billing_country,
+                delivery_first_name, delivery_last_name, delivery_street, delivery_city, delivery_zip, delivery_country):
+        self.id = id 
+        self.email = email
+        self.billing_first_name = billing_first_name
+        self.billing_last_name = billing_last_name 
+        self.billing_street = billing_street
+        self.billing_city = billing_city
+        self.billing_zip = billing_zip
+        self.billing_country = billing_country
+        self.delivery_first_name = delivery_first_name
+        self.delivery_last_name = delivery_last_name
+        self.delivery_street = delivery_street
+        self.delivery_city = delivery_city
+        self.delivery_zip = delivery_zip
+        self.delivery_country = delivery_country
+
+    def __repr__(self):
+        return '<id {}>'.format(self.id)

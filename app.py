@@ -1,17 +1,34 @@
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, request, session, redirect, url_for
+from flask_mail import Mail,  Message
 from flask.ext.sqlalchemy import SQLAlchemy
 
+import stripe
 import jinja2
 import datetime
+import copy
+import uuid
+
+
+from config import ErrorMessages
 
 #################################################################################
 # Define environment
 
+mail = Mail()
 app = Flask(__name__, static_folder="static")
 app.config.from_object(os.environ['APP_SETTINGS'])
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+mail.init_app(app)
+
+stripe_keys = dict(
+	secret_key=app.config["STRIPE_SECRET"],
+	publishable_key=app.config["STRIPE_PUBLISHABLE"]
+)
+
+stripe.api_key = stripe_keys["secret_key"]
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
@@ -19,20 +36,25 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
 #################################################################################
 
 import models
+import forms
+import helpers
+
 
 #################################################################################
 # Display home page
 @app.route('/')
 def home():
-    return render_template("index.html", environment=os.environ['APP_SETTINGS'])
+	return render_template("index.html", environment=os.environ['APP_SETTINGS'])
 
 #################################################################################
 # Most pages only contain static content, generic method to render static template
 @app.route('/<page>')
 def staticPage(page):
-    return render_template('{}.html'.format(page), environment=os.environ['APP_SETTINGS'])
+	return render_template('{}.html'.format(page), environment=os.environ['APP_SETTINGS'])
 
 #################################################################################
+### SHOP ###
+
 # Display all shop items in pairs
 @app.route('/shop')
 def shop():
@@ -98,12 +120,178 @@ def shopItem(itemId):
 
 	# build item meta
 	item.images = [item_photo.url for item_photo in item_photos]
-	item.colours = [item_colour.name.upper() for item_colour in item_colours]
-	item.sizes = [item_size.name.upper() for item_size in item_sizes]
+	item.colours = item_colours #[item_colour.name.upper() for item_colour in item_colours]
+	item.sizes = item_sizes #[item_size.name.upper() for item_size in item_sizes]
 
-	return render_template('shop-item.html', environment=os.environ['APP_SETTINGS'], item=item)
+	errors = session["shop-item-errors"] if "shop-item-errors" in session else None
 
+	return render_template('shop-item.html', environment=os.environ['APP_SETTINGS'], item=item, errors=errors)
+
+@app.route("/shop/add_to_cart/<int:itemId>", methods=["POST"])
+def add_to_cart(itemId):
+
+	itemId = itemId
+	size = request.form.get("item-size")
+	colour = request.form.get("item-colour")
+
+	# check size and colour have been set
+	valid_size = helpers.validate_size(size)
+	valid_colour = helpers.validate_colour(colour)
+	if not valid_size or not valid_colour:
+		
+		error_size_message = ErrorMessages.ITEM_SIZE if not valid_size else ""
+		error_colour_message = ErrorMessages.ITEM_COLOUR if not valid_colour else ""
+
+		errors = dict(size=error_size_message, colour=error_colour_message)
+		session["shop-item-errors"] = errors
+		return redirect(url_for("shopItem", itemId=itemId))
+
+	session["shop-item-errors"] = None
+
+	# create key for item / size / colour combo
+	key = "{item_id}|{size_id}|{colour_id}".format(item_id=itemId, size_id=size, colour_id=colour)
+
+	if "cart" not in session:
+		# user currently has no shopping cart, initialise
+		session["cart"] = {}
+
+	# if item / size / colour combo already exists, increment, else initialise
+	if key in session["cart"]:
+		session["cart"][key] += 1
+	else:
+		session["cart"][key] = 1
+		
+	""" TODO: increment number of items in task bar. """
+	print session["cart"]
+	return redirect(request.referrer)
+
+@app.route("/shop/cart", methods=["GET", "POST"])
+def shop_cart():
+ 
+	if request.method == "GET":
+		if "cart" not in session or len(session["cart"]) == 0:
+			return render_template("cart.html", environment=os.environ['APP_SETTINGS'], items=[], total=0)
+
+		cart_items, total_amount = helpers.get_cart_items()
+
+		return render_template("cart.html", environment=os.environ['APP_SETTINGS'], cart=cart_items, total=total_amount)
+
+	if request.method == "POST":
+		pass
+
+@app.route("/shop/payment-form", methods=["GET", "POST"])
+def payment_form():
+	form = forms.UserForm(request.form)
+	if request.method == "POST" and form.validate():
+		print "Validated"
+		return redirect(url_for('payment_form'))
+	print "Invalid"
+	print form.errors
+	return render_template('payment-form.html', form=form)
+
+@app.route("/shop/payment", methods=["GET", "POST"])
+def pay():
+
+	form = forms.PaymentForm(request.form)
+
+	if request.method == "POST" and form.validate():
+		print request.form
+
+		# Get the credit card details submitted by the form
+		token = request.form.get('stripeToken')
+		email = request.form.get('email')
+		billing_first_name = request.form.get('billing_first_name')
+		billing_last_name = request.form.get('billing_first_name')
+		billing_street = request.form.get('billing_street')
+		billing_city = request.form.get('billing_city')
+		billing_zip = request.form.get('billing_zip')
+		billing_country = request.form.get('billing_country')
+		delivery_first_name = request.form.get('delivery_first_name')
+		delivery_last_name = request.form.get('delivery_first_name')
+		delivery_street = request.form.get('delivery_street')
+		delivery_city = request.form.get('delivery_city')
+		delivery_zip = request.form.get('delivery_zip')
+		delivery_country = request.form.get('delivery_country')
+		total = int(float(request.form.get('total')) * 100)
+		# total_amount = int(request.form.get('total') * 100.0) # convert to pence
+
+		""" TO DO: get basket details """
+
+		# Create a charge: this will charge the user's card
+		try:
+			charge = stripe.Charge.create(
+				amount=total, # Amount in cents
+				currency=app.config['CURRENCY'],
+				source=token,
+				description=email
+			)
+		except stripe.error.CardError as e:
+			# The card has been declined
+			return """<html><body><h1>Card Declined</h1><p>Your chard could not
+		be charged. Please check the number and/or contact your credit card
+		company.</p></body></html>"""
+
+		print charge
+
+		# clear shopping basket
+		session["cart"] = {}
+
+		purchase = models.Purchase(id=str(uuid.uuid4()),
+				email=email,
+				billing_first_name=billing_first_name,
+				billing_last_name=billing_last_name,
+				billing_street=billing_street,
+				billing_city=billing_city,
+				billing_zip=billing_zip,
+				billing_country=billing_country,
+				delivery_first_name=delivery_first_name,
+				delivery_last_name=delivery_last_name,
+				delivery_street=delivery_street,
+				delivery_city=delivery_city,
+				delivery_zip=delivery_zip,
+				delivery_country=delivery_country)
+		db.session.add(purchase)
+		db.session.commit()
+		message = Message(
+				subject='Thanks for your purchase!',
+			sender=app.config["MAIL_USERNAME"], 
+			html="""<html><body><h1>Thank you for your purchase of {}!</h1> Your purchase number: {}
+			<html><body>""".format(total, purchase.id),
+			recipients=[email])
+		with mail.connect() as conn:
+			conn.send(message)
+
+		return render_template("payment-confirmation.html", environment=os.environ['APP_SETTINGS'])     
+
+	if "cart" not in session.keys():
+		return redirect(url_for("shop_cart"))
+
+	items = models.ShopItem.query.all()
+
+	cart_items = []
+	total_amount = 0
+
+	for cart_item in session["cart"]:
+		cart_item_id, cart_item_size, cart_item_colour = cart_item.split("|")
+		cart_item_quantity = session["cart"][cart_item]
+		for item in items:
+			if int(cart_item_id) == item.id:
+				cart_item = dict(id=item.id,
+					name=item.name,
+					category=item.category,
+					quantity=cart_item_quantity,
+					price=item.price)
+				total_amount += item.price * cart_item_quantity
+	
+	return render_template("payment.html", environment=os.environ['APP_SETTINGS'], 
+		key=stripe_keys["publishable_key"],
+		shipping=4.95,
+		total=total_amount,
+		form=form
+		)
 #################################################################################
+### PRESS ###
+
 # Display all press articles, newest first
 @app.route('/press')
 def press():
@@ -131,4 +319,4 @@ def press():
 
 
 if __name__ == '__main__':
-    app.run()
+	app.run()

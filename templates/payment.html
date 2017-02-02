@@ -1,0 +1,424 @@
+
+{% extends "base.html" %}
+
+{% block customJs %}
+
+	<script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+	<script src="{{ url_for('static', filename='js/payment.js') }}"></script>
+	<script type="text/javascript">
+	  Stripe.setPublishableKey('{{ key }}');
+	</script>
+
+{% endblock %}
+
+{% block content %}
+	
+<div class="row">
+	<form action="/shop/payment" method="POST" id="payment-form">
+		{{ form.hidden_tag() }}
+
+		<div class="col-md-4 form-group">
+			<div class="form-row">
+				<h3>CONTACT & DELIVERY</h3>
+			</div>
+			<div class="form-row row">
+				{{ form.email.label(class="col-md-3 col-form-label") }}
+				<div class="col-md-9">
+					{% if form.email.errors %}
+						{{ form.email(class="form-control", placeholder=form.email.errors[0].upper(), value="") }}
+					{% else %}
+						{{ form.email(class="form-control") }}
+					{% endif %}
+					<!-- <input class="form-control" type="text" name="email"> -->
+				</div>
+			</div>
+			<div class="form-row row">
+				{{ form.delivery_first_name.label(class="col-md-3 col-form-label") }}
+				<div class="col-md-9">
+					{% if form.delivery_first_name.errors %}
+						{{ form.delivery_first_name(class="form-control", placeholder=form.delivery_first_name.errors[0].upper(), value="") }}
+					{% else %}
+						{{ form.delivery_first_name(class="form-control") }}
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-row row">
+				{{ form.delivery_last_name.label(class="col-md-3 col-form-label") }}
+				<div class="col-md-9">
+					{% if form.delivery_last_name.errors %}
+						{{ form.delivery_last_name(class="form-control", placeholder=form.delivery_last_name.errors[0].upper(), value="") }}
+					{% else %}
+						{{ form.delivery_last_name(class="form-control") }}
+					{% endif %}	
+				</div>
+			</div>
+			<div class="form-row row">
+				{{ form.delivery_street.label(class="col-md-3 col-form-label") }}
+				<div class="col-md-9">
+					{% if form.delivery_street.errors %}	
+						{{ form.delivery_street(class="form-control", placeholder=form.delivery_street.errors[0].upper(), value="") }}
+					{% else %}
+						{{ form.delivery_street(class="form-control") }}
+					{% endif %}	
+				</div>
+			</div>
+			<div class="form-row row">
+				{{ form.delivery_city.label(class="col-md-3 col-form-label") }}
+				<div class="col-md-9">
+					{% if form.delivery_city.errors %}	
+						{{ form.delivery_city(class="form-control", placeholder=form.delivery_city.errors[0].upper(), value="") }}
+					{% else %}
+						{{ form.delivery_city(class="form-control") }}
+					{% endif %}	
+				</div>
+			</div>
+			<div class="form-row row">
+				{{ form.delivery_zip.label(class="col-md-3 col-form-label") }}
+				<div class="col-md-9">
+					{% if form.delivery_zip.errors %}	
+						{{ form.delivery_zip(class="form-control", placeholder=form.delivery_zip.errors[0].upper(), value="") }}
+					{% else %}
+						{{ form.delivery_zip(class="form-control") }}
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-row row">
+				{{ form.delivery_country.label(class="col-md-3 col-form-label") }}
+				<div class="col-md-9">
+					{% if form.delivery_country.errors %}	
+						{{ form.delivery_country(class="form-control", placeholder=form.delivery_country.errors[0].upper(), value="") }}
+					{% else %}
+						{{ form.delivery_country(class="form-control") }}
+					{% endif %}
+				</div>
+			</div>
+		</div>
+
+		<div class="col-md-4 form-group">
+			<div class="form-row">
+				<h3>BILLING</h3>
+			</div>
+			<div class="form-row row">
+				<!-- {{ form.email.label(class="col-md-3 col-form-label") }} -->
+				<label class="col-md-6 col-form-label">SAME AS DELIVERY</label>
+				<div class="col-md-3">
+					<input class="form-check" type="radio" name="email">
+				</div>
+			</div>
+			<div class="form-row row">
+				<div class="col-md-9">
+					{{ form.billing_first_name(class="form-control") }}
+				</div>
+			</div>
+			<div class="form-row row">
+				<div class="col-md-9">
+					{{ form.billing_last_name(class="form-control") }}
+				</div>
+			</div>
+			<div class="form-row row">
+				<div class="col-md-9">
+					{{ form.billing_street(class="form-control") }}
+				</div>
+			</div>
+			<div class="form-row row">
+				<div class="col-md-9">
+					{{ form.billing_city(class="form-control") }}
+				</div>
+			</div>
+			<div class="form-row row">
+				<div class="col-md-9">
+					{{ form.billing_zip(class="form-control") }}
+				</div>
+			</div>
+			<div class="form-row row">
+				<div class="col-md-9">
+					{{ form.billing_country(class="form-control") }}
+				</div>
+			</div>
+		</div>
+
+		<div class="col-md-4 form-group">
+			<div class="form-row">
+				<h3>PAYMENT</h3>
+			</div>
+			<div class="form-row row">
+				<!-- {{ form.email.label(class="col-md-3 col-form-label") }} -->
+				<label class="col-md-9 col-form-label">CREDIT / DEBIT CARD</label>
+				<div class="col-md-3">
+					<input class="form-check" type="radio" name="card">
+				</div>
+			</div>
+			<div class="form-row row">
+				<label class="col-md-9 col-form-label">PAYPAL</label>
+				<div class="col-md-3">
+					<input class="form-check" type="radio" name="paypal">
+				</div>
+			</div>
+			<div class="form-row row">
+				<label class="col-md-3 col-form-label">CARD TYPE</label>
+				<div class="col-md-9">
+					<input class="form-control" type="text">
+				</div>
+			</div>
+			<div class="form-row row">
+				<label class="col-md-3 col-form-label">CARD NUMBER</label>
+				<div class="col-md-9">
+					<input id="card_number" class="form-control" type="text" data-stripe="number">
+				</div>
+			</div>
+			<div class="form-row row">
+				<label class="col-md-3 col-form-label">EXPIRY DATE</label>
+				<div class="col-md-9">
+					<input id="exp_month" type="text" size="2" value="MM" data-stripe="exp_month">
+					<span> /</span>
+					<input id="exp_year" type="text" size="2" value="YY" data-stripe="exp_year">
+				</div>
+			</div>
+			<div class="form-row row">
+				<label class="col-md-3 col-form-label">SECURITY CODE</label>
+				<div class="col-md-9">
+					<input id="cvc" class="form-control" type="text" data-stripe="cvc">
+				</div>
+			</div>
+			<div class="form-row row">
+				<div class="col-md-12">
+					<span class="payment-errors"></span>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-offset-9 col-md-3 form-group">
+			<div class="form-row row">
+				<div class="col-md-offset-3 col-md-9">
+					<input class="form-control" type="text" name="discount-code" value="ENTER DISCOUNT CODE HERE">
+				</div>
+			</div>
+			<div class="form-row row">
+				<label class="col-md-9 col-form-label">SUBTOTAL: £</label>
+				<div class="col-md-3">
+					<input class="form-control" type="text" name="subtotal" value="{{ total }}" readonly>
+				</div>
+			</div>
+			<div class="form-row row">
+				<label class="col-md-9 col-form-label">SHIPPING: £</label>
+				<div class="col-md-3">
+					<input class="form-control" type="text" name="shipping" value="{{ shipping }}" readonly>
+				</div>
+			</div>
+			<div class="form-row row">
+				<label class="col-md-9 col-form-label">TOTAL: £</label>
+				<div class="col-md-3">
+					<input class="form-control" type="text" name="total" value="{{ (total | float) + shipping }}" readonly>
+				</div>
+			</div>
+			<div class="form-row row">
+				<div class="col-md-offset-9 col-md-3">
+					<input type="submit" class="submit" value="CONFIRM" />
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+
+<!-- 	
+
+		<form action="/shop/payment" method="POST" id="payment-form">
+		<div class="col-md-12 centered">
+			<div class="form-group row">
+				
+				<div class="col-md-4">
+					<h3>CONTACT</h3>
+				</div>
+				<div class="col-md-3">
+					<h3>BILLING</h3>
+				</div>
+				<div class="col-md-4">
+					<h3>PAYMENT</h3>
+				</div>
+			</div>
+
+			<div class="form-group form-row row">
+
+
+				<label class="col-md-1 col-form-label">EMAIL</label>
+
+				<div class="col-md-3">
+					
+					<input class="form-control" type="text" name="email">
+				</div>
+
+				<label class="col-md-2 col-form-label">SAME AS DELIVERY</label>
+				<div class="col-md-1">
+					<input class="form-check" type="radio" name="email">
+				</div>
+
+				<label class="col-md-3 col-form-label">CREDIT / DEBIT CARD</label>
+				<div class="col-md-1">
+					<input class="form-check" type="radio" name="card">
+				</div>
+			</div>
+
+			<div class="form-group row">
+				
+				<label class="col-md-1 col-form-label">FIRST NAME</label>
+
+				<div class="col-md-3">
+					
+					<input class="form-control" type="text" name="email">
+				</div>
+
+				<div class="col-md-3">
+					<input class="form-control" type="text" name="first-name-billing">
+				</div>
+
+				<label class="col-md-3 col-form-label">PAYPAL</label>
+				<div class="col-md-1">
+					<input class="form-check" type="radio" name="paypal">
+				</div>
+			</div>
+
+			<div class="form-group row">
+				<label class="col-md-1 col-form-label">LAST NAME</label>
+
+				<div class="col-md-3">
+					
+					<input class="form-control" type="text" name="email">
+				</div>
+				
+
+				<div class="col-md-3">
+					<input class="form-control" type="text" name="last-name-billing">
+				</div>
+
+				<label class="col-md-1 col-form-label">CARD TYPE</label>
+				<div class="col-md-3">
+					<input class="form-control" type="text">
+				</div>
+			</div>
+
+			<div class="form-group row">
+				
+				<label class="col-md-1 col-form-label">ADDRESS</label>
+				<div class="col-md-3">
+					<input class="form-control" type="text" name="address-delivery">
+				</div>
+
+				<div class="col-md-3">
+					<input class="form-control" type="text" name="address-billing">
+				</div>
+
+				<label class="col-md-1 col-form-label">CARD NUMBER</label>
+				<div class="col-md-3">
+					<input class="form-control" type="text" data-stripe="number">
+				</div>
+			</div>
+
+			<div class="form-group row">
+				
+				<label class="col-md-1 col-form-label">CITY</label>
+				<div class="col-md-3">
+					<input class="form-control" type="text" name="city-delivery">
+				</div>
+
+				<div class="col-md-3">
+					<input class="form-control" type="text" name="city-billing">
+				</div>
+
+				<label class="col-md-1 col-form-label">EXPIRY DATE</label>
+				<div class="col-md-3">
+					<input type="text" size="2" value="MM" data-stripe="exp_month">
+					<span> /</span>
+					<input type="text" size="2" value="YY" data-stripe="exp_year">
+				</div>
+			</div>
+
+			<div class="form-group row">
+				
+				<label class="col-md-1 col-form-label">POST CODE</label>
+				<div class="col-md-3">
+					<input class="form-control" type="text" name="postcode-delivery">
+				</div>
+
+				<div class="col-md-3">
+					<input class="form-control" type="text" data-stripe="address_zip">
+				</div>
+
+				<label class="col-md-1 col-form-label">SECURITY CODE</label>
+				<div class="col-md-3">
+					<input class="form-control" type="text" data-stripe="cvc">
+				</div>
+			</div>
+
+			<div class="form-group row">
+				
+				<label class="col-md-1 col-form-label">COUNTRY</label>
+				<div class="col-md-3">
+					<input class="form-control" type="text" name="country-delivery">
+				</div>
+
+				<div class="col-md-3">
+					<input class="form-control" type="text" name="country-billing">
+				</div>
+
+				<div class="col-md-4">
+					<span class="payment-errors"></span>
+				</div>
+			</div>
+
+			<div class="form-group row">
+				<div class="col-md-offset-9 col-md-3">
+					<input class="form-control" type="text" name="discount-code" value="ENTER DISCOUNT CODE HERE">
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="col-md-offset-9 col-md-2 col-form-label">SUBTOTAL: £</label>
+				<div class="col-md-1">
+					<input class="form-control" type="text" name="subtotal" value="{{ total }}" readonly>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="col-md-offset-9 col-md-2 col-form-label">SHIPPING: £</label>
+				<div class="col-md-1">
+					<input class="form-control" type="text" name="shipping" value="{{ shipping }}" readonly>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label class="col-md-offset-9 col-md-2 col-form-label">TOTAL: £</label>
+				<div class="col-md-1">
+					<input class="form-control" type="text" name="total" value="{{ (total | float) + shipping }}" readonly>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-md-offset-11 col-md-1">
+					<input type="submit" class="submit" value="CONFIRM" />
+				</div>
+			</div>
+		</div>
+		</form>
+
+	</div> -->
+
+
+<!-- 		<div class="row border">
+			<div class="col-md-12 border">
+				<form action="/your-server-side-code" method="POST">
+				  <script
+				    src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+				    data-key="{{ key }}"
+				    data-amount="999"
+				    data-name="hm8862"
+				    data-description="Widget"
+				    data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
+				    data-locale="auto"
+				    data-zip-code="true"
+				    data-currency="eur">
+				  </script>
+				</form>
+			</div>
+		</div> -->
+
+{% endblock %}
+
+

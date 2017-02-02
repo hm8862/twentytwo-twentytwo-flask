@@ -3,6 +3,7 @@
 {% block customJs %}
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 	<script src="{{ url_for('static', filename='js/mail.js') }}"></script>
+	<script src="{{ url_for('static', filename='js/validate.js') }}"></script>
 	{% if item.name == "emin" %}
 	<script src="{{ url_for('static', filename='js/select.js') }}"></script>
 	{% endif %}
@@ -18,7 +19,7 @@
 			</div>
 
 			<div class="col-md-6 col-xs-12 border shop-item">
-				<form id="item-form" action="mailto:jessica@twentytwo-twentytwo.co.uk" method="post" enctype="text/plain" onsubmit="onSubmit()">
+				<form id="item-form" action="/shop/add_to_cart/{{ item.id }}" method="post">
 					<div class="col-md-12 col-xs-12">
 						<span id="item-name"><b>{{ item.name.upper() }}</b> {{ item.category.upper() }}</span>
 						<br>
@@ -38,32 +39,38 @@
 					<br>
 					<br>
 					<div class="col-md-5 col-xs-12">
-						<select id="item-size">
+						<select id="item-size" name="item-size">
 							<option value="" disabled selected>SELECT SIZE</option>
 							{% for size in item.sizes %}
-							<option name="body" value="{{ size }}">{{ size }}</option>
+							<option name="body" value="{{ size.size_id }}">{{ size.name.upper() }}</option>
 							{% endfor %}
 						</select>
+						
 					</div>
 					<div class="col-md-6 col-xs-12">
 
 						{% if item.name == "emin" %}
 
-						<select id="item-colour" onchange="onChange()">
+						<select id="item-colour" name="item-colour" onchange="onChange()">
 
 						{% else %}
 
-						<select id="item-colour">
+						<select id="item-colour" name="item-colour">
 
 						{% endif %}
 
 							<option value="" disabled selected>SELECT COLOUR</option>
 
 							{% for colour in item.colours %}
-							<option name="body" value="{{ colour }}">{{ colour }}</option>
+							<option name="body" value="{{ colour.colour_id }}">{{ colour.name.upper() }}</option>
 							{% endfor %}
 						</select>
+			
 					</div>
+					{% if errors %}
+						<div class="col-md-5 col-xs-12 error"><span id="size-error">{{ errors.size }}</span></div>
+						<div class="col-md-6 col-xs-12 error"><span id="colour-error"></span>{{ errors.colour }}</div>
+					{% endif %}
 					<br>
 					<br>
 					<br>
@@ -83,7 +90,7 @@
 					<br>
 					<br>
 					<div class="col-md-10">
-						<input type="submit" value="MAKE ENQUIRY" />
+						<input type="submit" value="ADD TO CART" />
 					</div>
 				</form>
 

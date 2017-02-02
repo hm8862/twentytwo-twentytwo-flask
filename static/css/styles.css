@@ -48,6 +48,10 @@ a {
 	overflow-y: auto;
 }
 
+.error {
+	font-weight: 700;
+}
+
 .header {
 	position: fixed;
 	/*top: 0px;*/
@@ -165,6 +169,11 @@ a {
 	text-align: center;
 }
 
+.centered {
+	margin: 0 auto;
+	float: none;
+}
+
 .text-justified {
 	text-align: justify;
 	text-justify: inter-word;
@@ -201,6 +210,7 @@ a {
 	height: 60vh;
 	width: 100%;
 	overflow-y: scroll;
+	overflow-x: hidden;
 	float: none;
 	margin: 0 auto;
 	padding: 0;
@@ -275,6 +285,20 @@ a {
     font-weight: 700;
 }
 
+.table > tbody > tr > td, 
+.table > tbody > tr > th, 
+.table > tfoot > tr > td, 
+.table > tfoot > tr > th, 
+.table > thead > tr > td, 
+.table > thead > tr > th {
+	border-top: 0px solid #FFFFFF;
+}
+
+.form-group label {
+	font-size: 11px;
+	font-weight: 300;
+}
+
 .photo-grid .left-margin {
 	padding-left: 3.25%;
 	padding-right: 0px;
@@ -293,6 +317,7 @@ a {
 	min-height: 62.35028249vw;
 	width: 100%;
 	position: absolute;
+	font-size: 11px;
 /*	overflow-y: scroll;
 	float: none;
 	margin: 0 auto;

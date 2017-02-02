@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+		<!-- Shopping cart -->
+		<div class="row">
+				<div class="col-md-12">
+					<h2>YOUR ORDER:</h2>
+				</div>
+		</div>
+		<div class="row">
+			<div class="table-responsive">
+				<table class="table">
+					<tr class="hline table-head">
+						<th class="col-md-2"></th>
+						<th>ITEM</th>
+						<th>COLOUR</th>
+						<th>SIZE</th>
+						<th>QUANTITY</th>
+						<th>PRICE</th>
+						<th></th>
+					</tr>
+				</table>
+			</div>
+		</div>
+		<div class="row border scroll">
+
+			<div class="row">
+				<div class="col-md-12">
+
+					<div class="table-responsive">
+						<table class="table">
+<!-- 							<tr class="hline table-head">
+								<th></th>
+								<th>ITEM</th>
+								<th>COLOUR</th>
+								<th>SIZE</th>
+								<th>QUANTITY</th>
+								<th>PRICE</th>
+								<th></th>
+							</tr> -->
+							{% if cart | length > 0 %}
+								{% for item in cart %}
+								<tr>
+									<td class="col-md-2"><img class="img-responsive" src="{{ url_for('static', filename='images/{}'.format(item.thumbnail)) }}"></td>
+									<td><input type="hidden" name="item" value="{{ item.id }}"><b>{{ item.name.upper() }}</b> {{ item.category.upper() }}</td>
+									<td><input type="hidden" name="colour" value="{{ item.colour.id }}">{{ item.colour.name.upper() }} </td>
+									<td><input type="hidden" value="size" name="{{ item.size.id }}"/>{{ item.size.name.upper() }}</td>
+									<td><input type="text" name="quantity" value="{{ item.quantity }}"/></td>
+									<td><input type="hidden" value="price" name="{{ item.price }}"/> {{ "£{}".format(((item.price * item.quantity) | int)) }} </td>
+									<td>REMOVE</td>
+								</tr>
+								{% endfor %}
+							{% else %}
+								<tr>
+									<td>NO ITEMS IN SHOPPING BASKET.</td>
+								</tr>
+							{% endif %}
+						</table>
+					</div>
+
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<h3><input type="hidden" name="total" value="{{ total }}">SUBTOTAL: {{ "£{}".format(((total) | int)) }} </h3>
+			</div>	
+		</div>
+		<div class="row hline">
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<h3><a href="/shop/payment">PROCEED TO PAYMENT</a></h3>
+			</div>	
+		</div>
+		<br>
+		<br>
+		<br>
+
+{% endblock %}
