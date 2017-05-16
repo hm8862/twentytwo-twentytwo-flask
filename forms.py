@@ -2,19 +2,13 @@ from flask_wtf import FlaskForm
 from wtforms import IntegerField, StringField, BooleanField, SelectField
 from wtforms.validators import DataRequired, Email, Required
 
+import models
+
 class ShopItemForm(FlaskForm):
-	shop_item_id = IntegerField('shop_item_id', validators=[DataRequired()])
-	size_id = SelectField('size_id', validators=[DataRequired()])
-	colour_id = SelectField('colour_id', validators=[DataRequired()])
+	size_id = SelectField('size_id', default=0, validators=[DataRequired(message="Please select a size.")], coerce=int)
+	colour_id = SelectField('colour_id', default=0, validators=[DataRequired(message="Please select a size.")], coerce=int)
 
 
-class DeliveryAddress(FlaskForm):
-	street = StringField('ADDRESS', validators=[DataRequired()])
-	city = StringField('CITY', validators=[DataRequired()])
-	zip = StringField('POSTCODE', validators=[DataRequired()])
-	country = StringField('COUNTRY', validators=[DataRequired()])
-
-    
 class UserForm(FlaskForm):
 	email = StringField('E-MAIL', validators=[DataRequired(message=(u'Please enter your email address')),
 													 Email(message=(u'Please enter a valid email address'))])

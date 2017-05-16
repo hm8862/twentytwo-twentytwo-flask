@@ -19,7 +19,8 @@
 			</div>
 
 			<div class="col-md-6 col-xs-12 border shop-item">
-				<form id="item-form" action="/shop/add_to_cart/{{ item.id }}" method="post">
+				<form id="item-form" action="/shop/item/{{ item.id }}" method="post">
+					{{ form.hidden_tag() }}
 					<div class="col-md-12 col-xs-12">
 						<span id="item-name"><b>{{ item.name.upper() }}</b> {{ item.category.upper() }}</span>
 						<br>
@@ -39,10 +40,15 @@
 					<br>
 					<br>
 					<div class="col-md-5 col-xs-12">
-						<select id="item-size" name="item-size">
-							<option value="" disabled selected>SELECT SIZE</option>
-							{% for size in item.sizes %}
-							<option name="body" value="{{ size.size_id }}">{{ size.name.upper() }}</option>
+						<select id="item-size" name="size_id">
+							<option value="0" disabled selected>SELECT SIZE</option>
+							{% for size in form.size_id %}
+							<!-- <option name="body" value="{{ size.size_id }}">{{ size.name.upper() }}</option> -->
+								<!-- {% if size.id == -1 %} -->
+									<!-- {{ size(disabled=True, selected=True) }} -->
+								<!-- {% else %} -->
+									{{ size }}
+								<!-- {% endif %} -->
 							{% endfor %}
 						</select>
 						
@@ -51,25 +57,37 @@
 
 						{% if item.name == "emin" %}
 
-						<select id="item-colour" name="item-colour" onchange="onChange()">
+						<select id="item-colour" name="colour_id" onchange="onChange()">
 
 						{% else %}
 
-						<select id="item-colour" name="item-colour">
+						<select id="item-colour" name="colour_id">
 
 						{% endif %}
 
-							<option value="" disabled selected>SELECT COLOUR</option>
+							<option value="0" disabled selected>SELECT COLOUR</option>
 
-							{% for colour in item.colours %}
-							<option name="body" value="{{ colour.colour_id }}">{{ colour.name.upper() }}</option>
+							{% for colour in form.colour_id %}
+							<!-- <option name="body" value="{{ colour.colour_id }}">{{ colour.name.upper() }}</option> -->
+							<!-- 	{% if colour.id == -1 %}
+									{{ colour(disabled=True, selected=True) }}
+								{% else %} -->
+									{{ colour }}
+								<!-- {% endif %} -->
 							{% endfor %}
 						</select>
 			
 					</div>
-					{% if errors %}
-						<div class="col-md-5 col-xs-12 error"><span id="size-error">{{ errors.size }}</span></div>
-						<div class="col-md-6 col-xs-12 error"><span id="colour-error"></span>{{ errors.colour }}</div>
+					{% if form.size_id.errors and form.colour_id.errors %}
+						<div class="col-md-5 col-xs-12 error"><span id="size-error">{{ form.size_id.errors[0].upper() }}</span></div>
+						<div class="col-md-6 col-xs-12 error"><span id="colour-error"></span>{{ form.colour_id.errors[0].upper() }}</div>
+					{% elif form.size_id.errors %}
+						<div class="col-md-5 col-xs-12 error"><span id="size-error">{{ form.size_id.errors[0].upper() }}</span></div>
+					{% elif form.colour_id.errors %}
+						<div class="col-md-offset-5 col-xs-offset-12 col-md-6 col-xs-12 error"><span id="colour-error"></span>{{ form.colour_id.errors[0].upper() }}</div>
+					{% else %}
+						<div class="col-md-5 col-xs-12 error"><span id="size-error"></span></div>
+						<div class="col-md-6 col-xs-12 error"><span id="colour-error"></span></div>
 					{% endif %}
 					<br>
 					<br>

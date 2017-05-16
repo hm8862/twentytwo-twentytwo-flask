@@ -44,13 +44,13 @@ import helpers
 # Display home page
 @app.route('/')
 def home():
-	return render_template("index.html", environment=os.environ['APP_SETTINGS'])
+	return render_template("index.html", environment=os.environ['APP_SETTINGS'], cart_item_count=helpers.cart_item_count())
 
 #################################################################################
 # Most pages only contain static content, generic method to render static template
 @app.route('/<page>')
 def staticPage(page):
-	return render_template('{}.html'.format(page), environment=os.environ['APP_SETTINGS'])
+	return render_template('{}.html'.format(page), environment=os.environ['APP_SETTINGS'], cart_item_count=helpers.cart_item_count())
 
 #################################################################################
 ### SHOP ###
@@ -77,10 +77,15 @@ def shop():
 	# split into pairs
 	items = zip(*[iter(items)]*2)
 
-	return render_template('shop.html', environment=os.environ['APP_SETTINGS'], items=items)
+	cart_item_count = helpers.cart_item_count()
+	print cart_item_count
 
-@app.route('/shop/item/<itemId>')
+	return render_template('shop.html', environment=os.environ['APP_SETTINGS'], items=items, cart_item_count=helpers.cart_item_count())
+
+@app.route('/shop/item/<itemId>', methods=["GET", "POST"])
 def shopItem(itemId):
+
+	form = forms.ShopItemForm(request.form)
 
 	# get all photos, colours and sizes for mapping
 	photos = models.Photo.query.all()
@@ -94,6 +99,37 @@ def shopItem(itemId):
 	item_colours = models.ShopItemColour.query.filter_by(shop_item_id=itemId).all()
 	item_sizes = models.ShopItemSize.query.filter_by(shop_item_id=itemId).all()
 
+	# add colour and size options for given item
+	form.size_id.choices = [(size.id, size.name.upper()) for size in models.Size.query.filter(models.Size.id.in_([i.size_id for i in item_sizes])).order_by('id').all()]
+	form.colour_id.choices = [(colour.id, colour.name.upper()) for colour in models.Colour.query.filter(models.Colour.id.in_([i.colour_id for i in item_colours])).order_by('name').all()]
+
+	# print dir(form)
+	
+	if request.method == "POST" and form.validate():
+
+		print "Adding to cart"
+		helpers.add_to_cart(itemId)
+		return redirect(request.referrer)
+
+	print form.errors
+
+
+	# # get all photos, colours and sizes for mapping
+	# photos = models.Photo.query.all()
+	# colours = models.Colour.query.all()
+	# sizes = models.Size.query.all()
+
+	# # get shop item and photos
+	# item = models.ShopItem.query.filter_by(id=itemId).one()
+	# thumbnail = models.ShopItemPhoto.query.filter_by(shop_item_id=itemId).filter_by(is_thumbnail=True).one()
+	# item_photos = models.ShopItemPhoto.query.filter_by(shop_item_id=itemId).all()
+	# item_colours = models.ShopItemColour.query.filter_by(shop_item_id=itemId).all()
+	# item_sizes = models.ShopItemSize.query.filter_by(shop_item_id=itemId).all()
+
+	# # add colour and size options for given item
+	# form.size_id.choices = [(-1, "SELECT SIZE")] + [(size.id, size.name.upper()) for size in models.Size.query.filter(models.Size.id.in_([i.size_id for i in item_sizes])).order_by('id').all()]
+	# form.colour_id.choices = [(-1, "SELECT SIZE")] + [(colour.id, colour.name.upper()) for colour in models.Colour.query.filter(models.Colour.id.in_([i.colour_id for i in item_colours])).order_by('name').all()]
+
 	# map photo path to item_photos
 	for i in range(0, len(item_photos)):
 		item_photo = item_photos[i]
@@ -103,29 +139,13 @@ def shopItem(itemId):
 			if item_photo.photo_id == photo.id:
 				item_photos[i].url = photo.url
 
-
-	# map colour name to item_colours
-	for j in range(0, len(item_colours)):
-		item_colour = item_colours[j]
-		for colour in colours:
-			if item_colour.colour_id == colour.id:
-				item_colours[j].name = colour.name
-
-	# map size name to item_sizes
-	for k in range(0, len(item_sizes)):
-		item_size = item_sizes[k]
-		for size in sizes:
-			if item_size.size_id == size.id:
-				item_sizes[k].name = size.name
-
-	# build item meta
 	item.images = [item_photo.url for item_photo in item_photos]
-	item.colours = item_colours #[item_colour.name.upper() for item_colour in item_colours]
-	item.sizes = item_sizes #[item_size.name.upper() for item_size in item_sizes]
+	# item.colours = item_colours #[item_colour.name.upper() for item_colour in item_colours]
+	# item.sizes = item_sizes #[item_size.name.upper() for item_size in item_sizes]
 
 	errors = session["shop-item-errors"] if "shop-item-errors" in session else None
 
-	return render_template('shop-item.html', environment=os.environ['APP_SETTINGS'], item=item, errors=errors)
+	return render_template('shop-item.html', environment=os.environ['APP_SETTINGS'], item=item, form=form, cart_item_count=helpers.cart_item_count())
 
 @app.route("/shop/add_to_cart/<int:itemId>", methods=["POST"])
 def add_to_cart(itemId):
@@ -170,11 +190,11 @@ def shop_cart():
  
 	if request.method == "GET":
 		if "cart" not in session or len(session["cart"]) == 0:
-			return render_template("cart.html", environment=os.environ['APP_SETTINGS'], items=[], total=0)
+			return render_template("cart.html", environment=os.environ['APP_SETTINGS'], items=[], total=0, cart_item_count=helpers.cart_item_count())
 
 		cart_items, total_amount = helpers.get_cart_items()
 
-		return render_template("cart.html", environment=os.environ['APP_SETTINGS'], cart=cart_items, total=total_amount)
+		return render_template("cart.html", environment=os.environ['APP_SETTINGS'], cart=cart_items, total=total_amount, cart_item_count=helpers.cart_item_count())
 
 	if request.method == "POST":
 		pass
@@ -261,7 +281,7 @@ def pay():
 		with mail.connect() as conn:
 			conn.send(message)
 
-		return render_template("payment-confirmation.html", environment=os.environ['APP_SETTINGS'])     
+		return render_template("payment-confirmation.html", environment=os.environ['APP_SETTINGS'], cart_item_count=helpers.cart_item_count())     
 
 	if "cart" not in session.keys():
 		return redirect(url_for("shop_cart"))
@@ -287,7 +307,8 @@ def pay():
 		key=stripe_keys["publishable_key"],
 		shipping=4.95,
 		total=total_amount,
-		form=form
+		form=form,
+		cart_item_count=helpers.cart_item_count()
 		)
 #################################################################################
 ### PRESS ###
@@ -315,7 +336,7 @@ def press():
 	# display newest article first
 	articles.reverse()
 
-	return render_template('press.html', environment=os.environ['APP_SETTINGS'], articles=articles)
+	return render_template('press.html', environment=os.environ['APP_SETTINGS'], articles=articles, cart_item_count=helpers.cart_item_count())
 
 
 if __name__ == '__main__':

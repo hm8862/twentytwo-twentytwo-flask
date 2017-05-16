@@ -1,4 +1,4 @@
-from flask import session
+from flask import session, request
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 import models
@@ -23,6 +23,49 @@ def validate_colour(colour_id):
 
 	return colour_id
 
+def add_to_cart(itemId):
+
+	itemId = itemId
+	size = request.form.get("size_id")
+	colour = request.form.get("colour_id")
+
+	# # check size and colour have been set
+	# valid_size = helpers.validate_size(size)
+	# valid_colour = helpers.validate_colour(colour)
+	# if not valid_size or not valid_colour:
+		
+	# 	error_size_message = ErrorMessages.ITEM_SIZE if not valid_size else ""
+	# 	error_colour_message = ErrorMessages.ITEM_COLOUR if not valid_colour else ""
+
+	# 	errors = dict(size=error_size_message, colour=error_colour_message)
+	# 	session["shop-item-errors"] = errors
+	# 	return redirect(url_for("shopItem", itemId=itemId))
+
+	# session["shop-item-errors"] = None
+
+	# create key for item / size / colour combo
+	key = "{item_id}|{size_id}|{colour_id}".format(item_id=itemId, size_id=size, colour_id=colour)
+
+	if "cart" not in session:
+		# user currently has no shopping cart, initialise
+		session["cart"] = {}
+
+	# if item / size / colour combo already exists, increment, else initialise
+	if key in session["cart"]:
+		session["cart"][key] += 1
+	else:
+		session["cart"][key] = 1
+		
+	""" TODO: increment number of items in task bar. """
+	print session["cart"]
+	return
+
+def cart_item_count():
+
+	if "cart" in session:
+		return len(session["cart"])
+	return 0
+
 def get_cart_items():
 
 	items = models.ShopItem.query.all()
@@ -39,7 +82,7 @@ def get_cart_items():
 		cart_item_id, cart_item_size, cart_item_colour = cart_item.split("|")
 		cart_item_quantity = session["cart"][cart_item]
 		for item in items:
-			if int(cart_item_id) == item.id:
+			if cart_item_id and int(cart_item_id) == item.id:
 				cart_item = dict(id=item.id,
 					name=item.name,
 					category=item.category,
@@ -54,11 +97,11 @@ def get_cart_items():
 								cart_item["thumbnail"] = photo.url
 
 		for size in sizes:
-				if int(cart_item_size) == size.id:
-					cart_item["size"] = size
+			if cart_item_size != "None" and int(cart_item_size) == size.id:
+				cart_item["size"] = size
 
 		for colour in colours:
-			if int(cart_item_colour) == colour.id:
+			if cart_item_colour != "None" and int(cart_item_colour) == colour.id:
 				cart_item["colour"] = colour
 
 		cart_items.append(cart_item)
